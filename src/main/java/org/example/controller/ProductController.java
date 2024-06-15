@@ -1,6 +1,8 @@
 package org.example.controller;
 
 import org.example.model.Product;
+import org.example.service.ProductService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,9 @@ import java.util.UUID;
 @RestController
 public class ProductController {
 
+    @Autowired
+    public ProductService productService;
+
     /**
      * This is just sample
      * @return
@@ -24,12 +29,6 @@ public class ProductController {
         return "product";
     }
 
-    /*@PostMapping("/product")
-    public String saveProduct(@RequestBody Product product){
-        System.out.println("Product is saved :"+product.getId());
-        return product.getId();
-    }*/
-
     /**
      * Here I am sending request model class as reponse.
      * if you want you can create different model class for response
@@ -37,39 +36,29 @@ public class ProductController {
      * @return
      */
     @PostMapping("/product")
-    public ResponseEntity<Product> saveProduct(@RequestBody Product product){
-        product.setId(UUID.randomUUID().toString());
-        System.out.println("Product is saved :"+product.getId());
+    public ResponseEntity<Product> createProduct(@RequestBody Product product){
+        Product p = productService.createProduct(product);
+        System.out.println("Product is created :"+p.getId());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(product);
+                .body(p);
     }
 
     @GetMapping("/products")
     public List<Product> getAllProducts(){
-     List<Product> prodList = new ArrayList<>();
-     prodList.add(new Product("1","name1","description1",new BigDecimal(1.00)));
-        prodList.add(new Product("2","name2","description2",new BigDecimal(2.00)));
-     return  prodList;
+        return productService.getAllProducts();
     }
 
     @GetMapping("/product/{id}")
-    public Product getProduct(@PathVariable String id){
-       Product product = new Product(id,"name1","description1",new BigDecimal(1.00));
+    public Product getProduct(@PathVariable int id){
+        Product product = productService.getProduct(id);
         return  product;
     }
 
-    /**
-     * this patch will upadte the decription of product of given id
-     * @param product
-     * @param id
-     */
-    @PatchMapping("/product/{id}")
-    public void updateProduct(@RequestBody Product product,@PathVariable String id){
-        Product product1 = new Product(id,"name1","description1",new BigDecimal(1.00));
-        System.out.println("Product is updated :"+product1.getId()+" "+product1.getDescription() +" "+product1.getName());
-        product1.setDescription(product.getDescription());
-        System.out.println("Product is updated :"+product1.getId()+" "+product1.getDescription()+" "+product1.getName());;
+    @DeleteMapping("/product/{id}")
+    public void deleteProduct(@PathVariable int id){
+        productService.deleteProduct(id);
+        System.out.println("Product is deleted :"+id);
     }
 
     /**
@@ -78,16 +67,21 @@ public class ProductController {
      * @param id
      */
     @PutMapping("/product/{id}")
-    public void updateeProduct(@RequestBody Product product,@PathVariable String id){
-        Product product1 = new Product(id,"name1","description1",new BigDecimal(1.00));
-        System.out.println("Product is updated :"+product1.getId()+" "+product1.getDescription() +" "+product1.getName());
-        product1.setDescription(product.getDescription());
-        System.out.println("Product is updated :"+product1.getId()+" "+product1.getDescription()+" "+product1.getName());;
+    public  Product updateeProduct(@RequestBody Product product,@PathVariable int id){
+        productService.updateeProduct(product, id);
+        System.out.println("Product is updated :"+product.getId());
+        return product;
     }
 
-    @DeleteMapping("/product/{id}")
-    public void deleteProduct(@PathVariable String id){
-        System.out.println("Product is updated");
+    /**
+     * this patch will upadte the decription of product of given id
+     * @param product
+     * @param id
+     */
+    @PatchMapping("/product/{id}")
+    public Product updateProduct(@RequestBody Product product,@PathVariable int id){
+        productService.updateProduct(product, id);
+        System.out.println("Product is updated :"+product.getId());
+        return product;
     }
-
 }
