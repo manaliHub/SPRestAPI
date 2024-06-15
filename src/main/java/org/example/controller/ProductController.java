@@ -9,10 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 public class ProductController {
@@ -37,28 +34,47 @@ public class ProductController {
      */
     @PostMapping("/product")
     public ResponseEntity<Product> createProduct(@RequestBody Product product){
-        Product p = productService.createProduct(product);
-        System.out.println("Product is created :"+p.getId());
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(p);
+        Product p = null;
+        try {
+            p = productService.createProduct(product);
+            System.out.println("Product is created :" + p.getId());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(p);
+        }catch(Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/products")
-    public List<Product> getAllProducts(){
-        return productService.getAllProducts();
+    public ResponseEntity<List<Product>> getAllProducts(){
+        List<Product> productList = productService.getAllProducts();
+        if(productList.size()<=0)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        else
+        return ResponseEntity.of(Optional.of(productList));
     }
 
     @GetMapping("/product/{id}")
-    public Product getProduct(@PathVariable int id){
+    public ResponseEntity<Product> getProduct(@PathVariable int id){
         Product product = productService.getProduct(id);
-        return  product;
+        if(product == null)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        else
+            return ResponseEntity.of(Optional.of(product));
     }
 
     @DeleteMapping("/product/{id}")
-    public void deleteProduct(@PathVariable int id){
-        productService.deleteProduct(id);
-        System.out.println("Product is deleted :"+id);
+    public ResponseEntity<Void> deleteProduct(@PathVariable int id){
+        try {
+            productService.deleteProduct(id);
+            System.out.println("Product is deleted :" + id);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }catch(Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -67,10 +83,15 @@ public class ProductController {
      * @param id
      */
     @PutMapping("/product/{id}")
-    public  Product updateeProduct(@RequestBody Product product,@PathVariable int id){
-        productService.updateeProduct(product, id);
-        System.out.println("Product is updated :"+product.getId());
-        return product;
+    public  ResponseEntity<Product> updateeProduct(@RequestBody Product product,@PathVariable int id){
+        try {
+            productService.updateeProduct(product, id);
+            System.out.println("Product is updated :" + product.getId());
+            return ResponseEntity.of(Optional.of(product));
+        }catch(Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -79,9 +100,14 @@ public class ProductController {
      * @param id
      */
     @PatchMapping("/product/{id}")
-    public Product updateProduct(@RequestBody Product product,@PathVariable int id){
+    public ResponseEntity<Product> updateProduct(@RequestBody Product product,@PathVariable int id){
+        try {
         productService.updateProduct(product, id);
         System.out.println("Product is updated :"+product.getId());
-        return product;
+            return ResponseEntity.of(Optional.of(product));
+        }catch(Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
